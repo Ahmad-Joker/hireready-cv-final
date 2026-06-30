@@ -87,23 +87,26 @@ export default function AnalyzePage() {
   return (
     <>
       <Navbar />
-      <main className="px-4 py-14 sm:px-6 lg:px-8">
+      <main className="px-4 py-12 sm:px-6 sm:py-14 lg:px-8">
         <section className="mx-auto max-w-2xl">
           <div className="text-center">
             <h1 className="text-4xl font-black tracking-tight text-ink">Analyze your CV</h1>
             <p className="mt-4 text-lg leading-8 text-slate-600">
               Upload your CV and choose your target role to generate a sample report.
             </p>
+            <p className="mx-auto mt-4 max-w-xl rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
+              Your CV is not uploaded to a server in this MVP. Text is extracted locally in your browser.
+            </p>
           </div>
 
           <form
-            className="mt-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
+            className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-8"
             onSubmit={(event) => event.preventDefault()}
           >
             <label className="block">
               <span className="sr-only">Upload CV</span>
               <div
-                className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center transition hover:border-action hover:bg-blue-50"
+                className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-5 py-9 text-center transition hover:border-action hover:bg-blue-50"
                 onDrop={handleDrop}
                 onDragOver={(event) => event.preventDefault()}
               >
@@ -114,9 +117,12 @@ export default function AnalyzePage() {
                 <span className="mt-4 text-base font-bold text-ink">
                   Drag and drop your PDF here, or click to browse
                 </span>
-                <span className="mt-2 text-sm text-slate-500">
-                  {fileName ? `Selected file: ${fileName}` : "PDF only - text is extracted in your browser."}
-                </span>
+                <span className="mt-2 text-sm text-slate-500">PDF only. Works best with text-based CVs.</span>
+                {fileName ? (
+                  <span className="mt-4 max-w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm font-black text-action shadow-sm">
+                    Selected PDF: <span className="break-all">{fileName}</span>
+                  </span>
+                ) : null}
               </div>
               <input
                 type="file"
@@ -173,7 +179,7 @@ export default function AnalyzePage() {
               </div>
             </div>
 
-            <div className="mt-8">
+            <div className="sticky bottom-0 -mx-5 mt-8 border-t border-slate-200 bg-white/95 px-5 py-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
               <Button onClick={handleAnalyze} disabled={isAnalyzing}>
                 {isAnalyzing ? "Analyzing CV..." : "Analyze CV"}
               </Button>
@@ -181,7 +187,7 @@ export default function AnalyzePage() {
                 Your CV text is extracted in your browser. No account required.
               </p>
               {error ? (
-                <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold leading-6 text-red-700">
                   {error}
                 </p>
               ) : null}

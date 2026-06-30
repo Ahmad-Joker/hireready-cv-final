@@ -58,27 +58,39 @@ export default function ReportPage() {
     }
   }, []);
 
+  function handlePrint() {
+    window.print();
+  }
+
+  function handleClearReport() {
+    window.localStorage.removeItem(generatedStorageKey);
+    setReport(reportData);
+    setIsGenerated(false);
+  }
+
   return (
     <>
       <Navbar />
-      <main className="px-4 py-14 sm:px-6 lg:px-8">
+      <main className="px-4 py-12 sm:px-6 sm:py-14 lg:px-8">
         <section className="mx-auto max-w-6xl">
-          <div className="max-w-3xl">
-            <p className="mb-4 inline-flex rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-bold text-action shadow-sm">
-              {isGenerated ? "Generated from your uploaded CV" : "Sample report"}
-            </p>
-            <h1 className="text-4xl font-black tracking-tight text-ink sm:text-5xl">
-              {isGenerated ? "Your CV Report" : "Sample CV Report"}
-            </h1>
-            <p className="mt-4 text-lg leading-8 text-slate-600">
-              {isGenerated
-                ? "This report uses extracted PDF text and transparent rules. No AI or backend processing is used."
-                : "This preview uses illustrative data to show how your CV analysis will appear."}
-            </p>
-            <div className="mt-6">
-              <Button href="/analyze" variant={isGenerated ? "primary" : "secondary"}>
-                Analyze Another CV
-              </Button>
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div className="max-w-3xl">
+              <p className="mb-4 inline-flex rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-bold text-action shadow-sm">
+                {isGenerated ? "Generated from your uploaded CV" : "Sample report"}
+              </p>
+              <h1 className="text-4xl font-black tracking-tight text-ink sm:text-5xl">
+                {isGenerated ? "Your CV Report" : "Sample CV Report"}
+              </h1>
+              <p className="mt-4 text-lg leading-8 text-slate-600">
+                {isGenerated
+                  ? "This report uses extracted PDF text and transparent rules. No backend processing is used."
+                  : "This preview uses illustrative data to show how your CV analysis will appear."}
+              </p>
+            </div>
+            <div className="grid w-full gap-3 sm:w-auto sm:grid-cols-3 lg:min-w-[430px]">
+              <Button href="/analyze">Analyze Another CV</Button>
+              <Button onClick={handlePrint} variant="secondary">Print / Save Report</Button>
+              <Button onClick={handleClearReport} variant="danger">Clear Report</Button>
             </div>
           </div>
 

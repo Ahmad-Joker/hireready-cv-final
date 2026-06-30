@@ -2,17 +2,17 @@ export default function ScoreCard({ label, score, max = 100, accent = "#2563EB" 
   const percentage = Math.min(100, Math.max(0, Math.round((score / max) * 100)));
 
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <article className="flex min-h-[176px] flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex items-start justify-between gap-4">
-        <p className="text-sm font-semibold text-slate-600">{label}</p>
+        <p className="text-sm font-bold leading-5 text-slate-700">{label}</p>
         <span
-          className="rounded-full px-2.5 py-1 text-xs font-bold text-white"
+          className="shrink-0 rounded-full px-2.5 py-1 text-xs font-bold text-white"
           style={{ backgroundColor: accent }}
         >
           {percentage}%
         </span>
       </div>
-      <div className="mt-5 flex items-end gap-1">
+      <div className="mt-auto flex items-end gap-1 pt-5">
         <span className="text-4xl font-black tracking-tight text-ink">{score}</span>
         <span className="pb-1.5 text-sm font-semibold text-slate-500">/{max}</span>
       </div>

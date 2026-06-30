@@ -62,16 +62,19 @@ export default function Home() {
     <>
       <Navbar />
       <main>
-        <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-24">
+        <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-20">
           <div>
             <p className="mb-5 inline-flex rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-bold text-action shadow-sm">
               Built for Egypt, UK, and international applications
             </p>
             <h1 className="max-w-3xl text-4xl font-black tracking-tight text-ink sm:text-5xl lg:text-6xl">
-              Free AI CV Checker for Egypt & UK Job Applications
+              Free CV checker for stronger Egypt and UK applications
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
               Upload your CV, get an ATS score, find missing keywords, and improve your chances before applying.
+            </p>
+            <p className="mt-4 inline-flex rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
+              Your CV is analyzed in your browser. No account required.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button href="/analyze">Analyze My CV Free</Button>
@@ -79,7 +82,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-soft">
+          <div className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-soft sm:p-5">
             <div className="rounded-3xl bg-ink p-6 text-white">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-slate-300">CV Score</p>
@@ -104,6 +107,17 @@ export default function Home() {
                   <p className="mt-2 text-2xl font-black text-ink">{value}</p>
                 </div>
               ))}
+            </div>
+            <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Top Problems</p>
+              <ul className="mt-3 space-y-2 text-sm font-semibold text-slate-700">
+                {reportData.topProblems.slice(0, 3).map((item) => (
+                  <li key={item} className="flex gap-2">
+                    <span className="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-action" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </section>
@@ -133,7 +147,7 @@ export default function Home() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <h2 className="text-3xl font-black tracking-tight text-ink">Sample report preview</h2>
             <Link href="/report" className="text-sm font-bold text-action hover:text-blue-700">
-              See full sample report →
+              See full sample report &gt;
             </Link>
           </div>
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -151,7 +165,7 @@ export default function Home() {
               <h3 className="mt-3 text-2xl font-black tracking-tight text-ink">Free Basic Report</h3>
               <ul className="mt-6 space-y-3 text-sm font-medium text-slate-600">
                 {["CV score", "ATS score", "Keyword gaps", "Basic improvement tips"].map((item) => (
-                  <li key={item}>✓ {item}</li>
+                  <li key={item}>Check: {item}</li>
                 ))}
               </ul>
               <div className="mt-8">
@@ -170,7 +184,7 @@ export default function Home() {
                   "Recruiter-style recommendations",
                   "Country-specific advice",
                 ].map((item) => (
-                  <li key={item}>✓ {item}</li>
+                  <li key={item}>Check: {item}</li>
                 ))}
               </ul>
               <div className="mt-8">
