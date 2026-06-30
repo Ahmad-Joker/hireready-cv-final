@@ -1,0 +1,282 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
+import Button from "../../components/Button";
+import ScoreCard from "../../components/ScoreCard";
+import { reportData } from "../../lib/reportData";
+
+const legacyStorageKey = "hireready-cv-report";
+const generatedStorageKey = "hireready_generated_report";
+
+function getStoredReport() {
+  try {
+    const stored =
+      window.localStorage.getItem(generatedStorageKey) ||
+      window.localStorage.getItem(legacyStorageKey);
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+}
+
+function getStatusClass(status) {
+  if (status === "Good") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (status === "Missing") return "border-red-200 bg-red-50 text-red-700";
+  return "border-amber-200 bg-amber-50 text-amber-700";
+}
+
+function ListCard({ title, items = [], ordered = false }) {
+  const ListTag = ordered ? "ol" : "ul";
+
+  return (
+    <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h2 className="text-xl font-black tracking-tight text-ink">{title}</h2>
+      <ListTag className={`${ordered ? "list-decimal pl-5" : "space-y-3"} mt-4 text-slate-600`}>
+        {items.map((item) => (
+          <li key={item} className={ordered ? "pl-1 leading-7" : "flex gap-3 leading-7"}>
+            {ordered ? null : <span className="mt-2 h-2 w-2 flex-none rounded-full bg-action" />}
+            <span>{item}</span>
+          </li>
+        ))}
+      </ListTag>
+    </article>
+  );
+}
+
+export default function ReportPage() {
+  const [report, setReport] = useState(reportData);
+  const [isGenerated, setIsGenerated] = useState(false);
+
+  useEffect(() => {
+    const storedReport = getStoredReport();
+
+    if (storedReport?.scores?.length) {
+      setReport(storedReport);
+      setIsGenerated(true);
+    }
+  }, []);
+
+  return (
+    <>
+      <Navbar />
+      <main className="px-4 py-14 sm:px-6 lg:px-8">
+        <section className="mx-auto max-w-6xl">
+          <div className="max-w-3xl">
+            <p className="mb-4 inline-flex rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-bold text-action shadow-sm">
+              {isGenerated ? "Generated from your uploaded CV" : "Sample report"}
+            </p>
+            <h1 className="text-4xl font-black tracking-tight text-ink sm:text-5xl">
+              {isGenerated ? "Your CV Report" : "Sample CV Report"}
+            </h1>
+            <p className="mt-4 text-lg leading-8 text-slate-600">
+              {isGenerated
+                ? "This report uses extracted PDF text and transparent rules. No AI or backend processing is used."
+                : "This preview uses illustrative data to show how your CV analysis will appear."}
+            </p>
+            <div className="mt-6">
+              <Button href="/analyze" variant={isGenerated ? "primary" : "secondary"}>
+                Analyze Another CV
+              </Button>
+            </div>
+          </div>
+
+          {isGenerated ? (
+            <article className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="grid gap-4 text-sm text-slate-600 sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                  <p className="font-bold text-ink">File</p>
+                  <p className="mt-1 break-words">{report.fileName || "Uploaded CV"}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-ink">Target role</p>
+                  <p className="mt-1">{report.targetRole || "General role"}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-ink">Country</p>
+                  <p className="mt-1">{report.country || "General"}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-ink">Experience level</p>
+                  <p className="mt-1">{report.experienceLevel || "Junior"}</p>
+                </div>
+              </div>
+            </article>
+          ) : null}
+
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {report.scores.map((item) => (
+              <ScoreCard key={item.label} {...item} />
+            ))}
+          </div>
+
+          {isGenerated ? (
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                ["Words", report.checks?.wordCount ?? 0],
+                [
+                  "Contact",
+                  report.checks?.hasEmail && report.checks?.hasPhone
+                    ? "Email + phone"
+                    : "Incomplete",
+                ],
+                [
+                  "Sections",
+                  [
+                    report.checks?.hasSkills ? "Skills" : null,
+                    report.checks?.hasExperience ? "Experience" : null,
+                    report.checks?.hasProjects ? "Projects" : null,
+                    report.checks?.hasEducation ? "Education" : null,
+                  ]
+                    .filter(Boolean)
+                    .join(", ") || "Needs structure",
+                ],
+                [
+                  "Impact signals",
+                  `${report.checks?.achievementCount ?? 0} numbers / ${report.checks?.actionVerbCount ?? 0} verbs`,
+                ],
+              ].map(([label, value]) => (
+                <article key={label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{label}</p>
+                  <p className="mt-2 text-lg font-black text-ink">{value}</p>
+                </article>
+              ))}
+            </div>
+          ) : null}
+
+          {isGenerated && report.scoreExplanation?.length ? (
+            <article className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-xl font-black tracking-tight text-ink">Score Explanation</h2>
+              <div className="mt-4 grid gap-3 md:grid-cols-3">
+                {report.scoreExplanation.map((item) => (
+                  <p key={item} className="rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+                    {item}
+                  </p>
+                ))}
+              </div>
+            </article>
+          ) : null}
+
+          <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_1fr]">
+            <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-xl font-black tracking-tight text-ink">Summary</h2>
+              <p className="mt-4 leading-7 text-slate-600">{report.summary}</p>
+            </article>
+
+            {isGenerated && report.topStrengths?.length ? (
+              <ListCard title="Top Strengths" items={report.topStrengths} />
+            ) : null}
+
+            <ListCard title="Top Problems" items={report.topProblems} ordered />
+
+            <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-xl font-black tracking-tight text-ink">
+                {isGenerated ? "Missing Role Keywords" : "Missing Keywords"}
+              </h2>
+              <div className="mt-5 flex flex-wrap gap-2">
+                {report.missingKeywords.map((keyword) => (
+                  <span
+                    key={keyword}
+                    className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-sm font-bold text-action"
+                  >
+                    {keyword}
+                  </span>
+                ))}
+              </div>
+            </article>
+
+            <ListCard title="Suggested Improvements" items={report.suggestedImprovements} />
+          </div>
+
+          {isGenerated && report.atsFormattingNotes?.length ? (
+            <article className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-xl font-black tracking-tight text-ink">ATS Formatting Notes</h2>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                {report.atsFormattingNotes.map((note) => (
+                  <p key={note} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+                    {note}
+                  </p>
+                ))}
+              </div>
+            </article>
+          ) : null}
+
+          {isGenerated && report.sectionFeedback?.length ? (
+            <article className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-xl font-black tracking-tight text-ink">Section-by-Section Feedback</h2>
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                {report.sectionFeedback.map((item) => (
+                  <div key={item.section} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="font-black text-ink">{item.section}</h3>
+                      <span className={`rounded-full border px-3 py-1 text-xs font-bold ${getStatusClass(item.status)}`}>
+                        {item.status}
+                      </span>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-slate-600">{item.feedback}</p>
+                  </div>
+                ))}
+              </div>
+            </article>
+          ) : null}
+
+          {isGenerated && report.actionPlan ? (
+            <article className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-xl font-black tracking-tight text-ink">Priority Action Plan</h2>
+              <div className="mt-5 grid gap-4 lg:grid-cols-3">
+                {[
+                  ["Fix first", report.actionPlan.fixFirst],
+                  ["Improve next", report.actionPlan.improveNext],
+                  ["Nice to have", report.actionPlan.niceToHave],
+                ].map(([title, items]) => (
+                  <div key={title} className="rounded-2xl bg-slate-50 p-4">
+                    <h3 className="font-black text-ink">{title}</h3>
+                    <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                      {items.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </article>
+          ) : null}
+
+          {isGenerated ? (
+            <article className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-xl font-black tracking-tight text-ink">Extracted Text Preview</h2>
+              <p className="mt-4 max-h-40 overflow-hidden rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+                {report.extractedTextPreview}
+              </p>
+            </article>
+          ) : null}
+
+          <article className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="relative bg-slate-50 p-6 sm:p-8">
+              <div className="absolute inset-x-8 top-6 h-20 rounded-2xl bg-white/60 blur-sm" aria-hidden="true" />
+              <div className="relative">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-200 text-ink">
+                  <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden="true">
+                    <path d="M7 10V8a5 5 0 0 1 10 0v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M6 10h12v9H6v-9Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <h2 className="mt-5 text-2xl font-black tracking-tight text-ink">
+                  Full Detailed Report Locked
+                </h2>
+                <p className="mt-4 max-w-3xl leading-7 text-slate-600">
+                  Coming soon: rewritten bullet points, section-by-section feedback, recruiter-style recommendations, and country-specific advice.
+                </p>
+                <div className="mt-6">
+                  <Button disabled>Unlock Full Report Soon</Button>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+      </main>
+      <Footer />
+    </>
+  );
+}
