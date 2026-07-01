@@ -13,6 +13,7 @@ export default function AnalyzePage() {
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState("");
   const [targetRole, setTargetRole] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
   const [country, setCountry] = useState("Egypt");
   const [experienceLevel, setExperienceLevel] = useState("Student");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -64,6 +65,7 @@ export default function AnalyzePage() {
       const report = generateCvReport({
         text,
         targetRole,
+        jobDescription,
         country,
         experienceLevel,
         fileName,
@@ -71,6 +73,7 @@ export default function AnalyzePage() {
 
       window.localStorage.setItem("hireready_generated_report", JSON.stringify(report));
       window.localStorage.setItem("targetRole", targetRole);
+      window.localStorage.setItem("jobDescription", jobDescription);
       window.localStorage.setItem("country", country);
       window.localStorage.setItem("experienceLevel", experienceLevel);
       router.push("/report");
@@ -144,6 +147,23 @@ export default function AnalyzePage() {
                 placeholder="e.g. Junior Social Media Marketer"
                 className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-ink outline-none transition placeholder:text-slate-400 focus:border-action focus:ring-4 focus:ring-blue-100"
               />
+            </div>
+
+            <div className="mt-6">
+              <label htmlFor="job-description" className="text-sm font-bold text-ink">
+                Job description
+              </label>
+              <textarea
+                id="job-description"
+                value={jobDescription}
+                onChange={(event) => setJobDescription(event.target.value)}
+                placeholder="Paste the job description here to get a more accurate keyword match."
+                rows={6}
+                className="mt-2 w-full resize-y rounded-xl border border-slate-300 bg-white px-4 py-3 text-ink outline-none transition placeholder:text-slate-400 focus:border-action focus:ring-4 focus:ring-blue-100"
+              />
+              <p className="mt-2 text-sm font-medium text-slate-500">
+                Optional, but recommended for better keyword matching.
+              </p>
             </div>
 
             <div className="mt-6 grid gap-5 sm:grid-cols-2">

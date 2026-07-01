@@ -45,6 +45,27 @@ function ListCard({ title, items = [], ordered = false }) {
   );
 }
 
+function KeywordPills({ keywords = [], tone = "matched" }) {
+  const toneClass =
+    tone === "missing"
+      ? "border-amber-200 bg-amber-50 text-amber-800"
+      : "border-blue-100 bg-blue-50 text-action";
+
+  if (!keywords.length) {
+    return <p className="text-sm leading-6 text-slate-500">No keywords to show.</p>;
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {keywords.map((keyword) => (
+        <span key={keyword} className={`rounded-full border px-3 py-1.5 text-sm font-bold ${toneClass}`}>
+          {keyword}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export default function ReportPage() {
   const [report, setReport] = useState(reportData);
   const [isGenerated, setIsGenerated] = useState(false);
@@ -156,6 +177,49 @@ export default function ReportPage() {
               ))}
             </div>
           ) : null}
+
+          <article className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h2 className="text-xl font-black tracking-tight text-ink">Job Description Match</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {report.hasJobDescription
+                    ? "This score compares your CV against the job description you provided."
+                    : "No job description was provided. Keyword matching is based on your selected target role."}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 sm:text-right">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Job Description Match Score
+                </p>
+                <p className="mt-1 text-3xl font-black text-ink">
+                  {report.hasJobDescription ? report.jobDescriptionMatchScore ?? 0 : "-"}
+                  {report.hasJobDescription ? <span className="text-base text-slate-500">/100</span> : null}
+                </p>
+              </div>
+            </div>
+
+            {report.hasJobDescription ? (
+              <div className="mt-6 grid gap-6 lg:grid-cols-2">
+                <div>
+                  <h3 className="text-sm font-black uppercase tracking-wider text-slate-500">
+                    Matched keywords
+                  </h3>
+                  <div className="mt-3">
+                    <KeywordPills keywords={report.matchedJobKeywords} />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-black uppercase tracking-wider text-slate-500">
+                    Missing keywords
+                  </h3>
+                  <div className="mt-3">
+                    <KeywordPills keywords={report.missingJobKeywords} tone="missing" />
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </article>
 
           {isGenerated && report.scoreExplanation?.length ? (
             <article className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
