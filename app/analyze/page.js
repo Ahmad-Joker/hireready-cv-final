@@ -98,7 +98,7 @@ export default function AnalyzePage() {
               Upload your CV and choose your target role to generate a sample report.
             </p>
             <p className="mx-auto mt-4 max-w-xl rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
-              Your CV is not uploaded to a server in this MVP. Text is extracted locally in your browser.
+              Rule-based analysis happens in your browser. AI feedback is only sent to Gemini later if you click Generate AI Feedback.
             </p>
           </div>
 
@@ -204,7 +204,7 @@ export default function AnalyzePage() {
                 {isAnalyzing ? "Analyzing CV..." : "Analyze CV"}
               </Button>
               <p className="mt-4 text-sm font-medium text-slate-500">
-                Your CV text is extracted in your browser. No account required.
+                No account required. This tool gives guidance, not a guaranteed hiring outcome.
               </p>
               {error ? (
                 <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold leading-6 text-red-700">

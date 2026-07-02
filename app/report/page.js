@@ -188,7 +188,7 @@ export default function ReportPage() {
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-3xl">
               <p className="mb-4 inline-flex rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-bold text-action shadow-sm">
-                {isGenerated ? "Generated from your uploaded CV" : "Sample report"}
+                {isGenerated ? "Generated from your uploaded CV" : "Sample report preview"}
               </p>
               <h1 className="text-4xl font-black tracking-tight text-ink sm:text-5xl">
                 {isGenerated ? "Your CV Report" : "Sample CV Report"}
@@ -196,8 +196,13 @@ export default function ReportPage() {
               <p className="mt-4 text-lg leading-8 text-slate-600">
                 {isGenerated
                   ? "This report uses extracted PDF text and transparent rules. No backend processing is used."
-                  : "This preview uses illustrative data to show how your CV analysis will appear."}
+                  : "This sample report preview uses illustrative data to show how your CV analysis will appear."}
               </p>
+              {!isGenerated ? (
+                <div className="mt-6">
+                  <Button href="/analyze">Analyze your CV</Button>
+                </div>
+              ) : null}
             </div>
             <div className="grid w-full gap-3 sm:w-auto sm:grid-cols-3 lg:min-w-[430px]">
               <Button href="/analyze">Analyze Another CV</Button>
@@ -234,7 +239,7 @@ export default function ReportPage() {
               <div>
                 <h2 className="text-xl font-black tracking-tight text-ink">AI Feedback</h2>
                 <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-                  AI feedback sends your extracted CV/report data to Gemini only when you click this button.
+                  Rule-based analysis happens in your browser. AI feedback sends your extracted CV/report data to Gemini only when you click this button. This tool gives guidance, not a guaranteed hiring outcome.
                 </p>
               </div>
               <Button onClick={handleGenerateAiFeedback} disabled={isGeneratingFeedback}>
@@ -441,23 +446,41 @@ export default function ReportPage() {
           ) : null}
 
           <article className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="relative bg-slate-50 p-6 sm:p-8">
-              <div className="absolute inset-x-8 top-6 h-20 rounded-2xl bg-white/60 blur-sm" aria-hidden="true" />
-              <div className="relative">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-200 text-ink">
-                  <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden="true">
-                    <path d="M7 10V8a5 5 0 0 1 10 0v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    <path d="M6 10h12v9H6v-9Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-                  </svg>
+            <div className="bg-slate-50 p-6 sm:p-8">
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                <div className="max-w-3xl">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-200 text-ink">
+                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden="true">
+                      <path d="M7 10V8a5 5 0 0 1 10 0v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      <path d="M6 10h12v9H6v-9Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <h2 className="mt-5 text-2xl font-black tracking-tight text-ink">
+                    Full Pro Report Coming Soon
+                  </h2>
+                  <p className="mt-4 leading-7 text-slate-600">
+                    A deeper paid report is planned for users who want a more complete CV rewrite and export workflow.
+                  </p>
                 </div>
-                <h2 className="mt-5 text-2xl font-black tracking-tight text-ink">
-                  Full Detailed Report Locked
-                </h2>
-                <p className="mt-4 max-w-3xl leading-7 text-slate-600">
-                  Coming soon: rewritten bullet points, section-by-section feedback, recruiter-style recommendations, and country-specific advice.
-                </p>
-                <div className="mt-6">
-                  <Button disabled>Unlock Full Report Soon</Button>
+                <div className="w-full rounded-2xl border border-slate-200 bg-white p-5 lg:max-w-sm">
+                  <p className="text-sm font-black uppercase tracking-wider text-slate-500">Locked benefits</p>
+                  <ul className="mt-4 space-y-3 text-sm font-semibold leading-6 text-slate-700">
+                    {[
+                      "Rewrite my CV summary",
+                      "Rewrite weak bullet points",
+                      "Tailor CV to this job description",
+                      "Export polished PDF report",
+                      "Save report history",
+                    ].map((item) => (
+                      <li key={item} className="flex gap-3">
+                        <span className="mt-2 h-2 w-2 flex-none rounded-full bg-action" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-6">
+                    <Button disabled>Join Waitlist Soon</Button>
+                  </div>
                 </div>
               </div>
             </div>
