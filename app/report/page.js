@@ -66,9 +66,72 @@ function KeywordPills({ keywords = [], tone = "matched" }) {
   );
 }
 
+function AiFeedbackCard({ feedback }) {
+  if (!feedback) return null;
+
+  return (
+    <article className="mt-8 rounded-2xl border border-blue-100 bg-white p-6 shadow-sm">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-sm font-black uppercase tracking-wider text-action">Optional AI Feedback</p>
+          <h2 className="mt-2 text-2xl font-black tracking-tight text-ink">Gemini CV Improvement Notes</h2>
+        </div>
+        <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-bold text-action">
+          Generated on request
+        </span>
+      </div>
+
+      <div className="mt-6 grid gap-5 lg:grid-cols-2">
+        <section className="rounded-2xl bg-slate-50 p-5">
+          <h3 className="text-sm font-black uppercase tracking-wider text-slate-500">Summary</h3>
+          <p className="mt-3 leading-7 text-slate-700">{feedback.aiSummary}</p>
+        </section>
+
+        <section className="rounded-2xl bg-slate-50 p-5">
+          <h3 className="text-sm font-black uppercase tracking-wider text-slate-500">
+            Rewritten Summary Suggestion
+          </h3>
+          <p className="mt-3 leading-7 text-slate-700">{feedback.rewrittenSummarySuggestion}</p>
+        </section>
+
+        <section className="rounded-2xl bg-slate-50 p-5">
+          <h3 className="text-sm font-black uppercase tracking-wider text-slate-500">Top Three Fixes</h3>
+          <ol className="mt-3 list-decimal space-y-2 pl-5 leading-7 text-slate-700">
+            {feedback.topThreeFixes?.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="rounded-2xl bg-slate-50 p-5">
+          <h3 className="text-sm font-black uppercase tracking-wider text-slate-500">
+            Improved Bullet Examples
+          </h3>
+          <ul className="mt-3 space-y-2 leading-7 text-slate-700">
+            {feedback.improvedBulletExamples?.map((item) => (
+              <li key={item} className="flex gap-3">
+                <span className="mt-3 h-2 w-2 flex-none rounded-full bg-action" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+
+      <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-5">
+        <h3 className="text-sm font-black uppercase tracking-wider text-slate-500">Recruiter Advice</h3>
+        <p className="mt-3 leading-7 text-slate-700">{feedback.recruiterAdvice}</p>
+      </section>
+    </article>
+  );
+}
+
 export default function ReportPage() {
   const [report, setReport] = useState(reportData);
   const [isGenerated, setIsGenerated] = useState(false);
+  const [aiFeedback, setAiFeedback] = useState(null);
+  const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
+  const [aiFeedbackError, setAiFeedbackError] = useState("");
 
   useEffect(() => {
     const storedReport = getStoredReport();
@@ -87,6 +150,34 @@ export default function ReportPage() {
     window.localStorage.removeItem(generatedStorageKey);
     setReport(reportData);
     setIsGenerated(false);
+    setAiFeedback(null);
+    setAiFeedbackError("");
+  }
+
+  async function handleGenerateAiFeedback() {
+    setIsGeneratingFeedback(true);
+    setAiFeedbackError("");
+
+    try {
+      const response = await fetch("/api/gemini-feedback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ report }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || "AI feedback could not be generated right now.");
+      }
+
+      setAiFeedback(data);
+    } catch (error) {
+      setAiFeedbackError(error?.message || "AI feedback could not be generated right now.");
+    } finally {
+      setIsGeneratingFeedback(false);
+    }
   }
 
   return (
@@ -137,6 +228,27 @@ export default function ReportPage() {
               </div>
             </article>
           ) : null}
+
+          <article className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h2 className="text-xl font-black tracking-tight text-ink">AI Feedback</h2>
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                  AI feedback sends your extracted CV/report data to Gemini only when you click this button.
+                </p>
+              </div>
+              <Button onClick={handleGenerateAiFeedback} disabled={isGeneratingFeedback}>
+                {isGeneratingFeedback ? "Generating AI feedback..." : "Generate AI Feedback"}
+              </Button>
+            </div>
+            {aiFeedbackError ? (
+              <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold leading-6 text-amber-800">
+                {aiFeedbackError}
+              </p>
+            ) : null}
+          </article>
+
+          <AiFeedbackCard feedback={aiFeedback} />
 
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {report.scores.map((item) => (
