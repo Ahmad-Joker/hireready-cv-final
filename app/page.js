@@ -5,6 +5,7 @@ import Button from "../components/Button";
 import ScoreCard from "../components/ScoreCard";
 import FeatureCard from "../components/FeatureCard";
 import StepCard from "../components/StepCard";
+import WaitlistForm from "../components/WaitlistForm";
 import { reportData } from "../lib/reportData";
 
 const features = [
@@ -231,6 +232,9 @@ export default function Home() {
                 Coming Soon
               </span>
               <h3 className="mt-3 text-2xl font-black tracking-tight text-ink">Full Report Pro</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-600">
+                Get notified when rewritten bullet points, tailored CV suggestions, and PDF exports launch.
+              </p>
               <ul className="mt-6 space-y-3 text-sm font-medium text-slate-600">
                 {[
                   "Rewritten bullet points",
@@ -241,9 +245,7 @@ export default function Home() {
                   <li key={item}>Preview: {item}</li>
                 ))}
               </ul>
-              <div className="mt-8">
-                <Button disabled>Coming Soon</Button>
-              </div>
+              <WaitlistForm source="homepage_pro_preview" />
             </article>
           </div>
         </section>

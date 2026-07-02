@@ -5,6 +5,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button";
 import ScoreCard from "../../components/ScoreCard";
+import WaitlistForm from "../../components/WaitlistForm";
 import { reportData } from "../../lib/reportData";
 
 const legacyStorageKey = "hireready-cv-report";
@@ -459,7 +460,7 @@ export default function ReportPage() {
                     Full Pro Report Coming Soon
                   </h2>
                   <p className="mt-4 leading-7 text-slate-600">
-                    A deeper paid report is planned for users who want a more complete CV rewrite and export workflow.
+                    Get notified when rewritten bullet points, tailored CV suggestions, and PDF exports launch.
                   </p>
                 </div>
                 <div className="w-full rounded-2xl border border-slate-200 bg-white p-5 lg:max-w-sm">
@@ -478,9 +479,7 @@ export default function ReportPage() {
                       </li>
                     ))}
                   </ul>
-                  <div className="mt-6">
-                    <Button disabled>Join Waitlist Soon</Button>
-                  </div>
+                  <WaitlistForm source="report_locked_pro_section" />
                 </div>
               </div>
             </div>
