@@ -211,15 +211,17 @@ export default function Home() {
 
         <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
-            <h2 className="text-3xl font-black tracking-tight text-ink">Plans preview</h2>
-            <p className="mt-3 text-slate-600">Start with the free analyzer today. Pro features are a visual preview for the next version.</p>
+            <h2 className="text-3xl font-black tracking-tight text-ink">Free Analyzer and Pro Report</h2>
+            <p className="mt-3 text-slate-600">
+              Start with the free analyzer today. Pro is not available yet. Join the waitlist to get notified when it launches.
+            </p>
           </div>
           <div className="mt-8 grid gap-5 lg:grid-cols-2">
             <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
               <p className="text-sm font-bold text-success">Available now</p>
               <h3 className="mt-3 text-2xl font-black tracking-tight text-ink">Free Analyzer</h3>
               <ul className="mt-6 space-y-3 text-sm font-medium text-slate-600">
-                {["CV score", "ATS score", "Keyword matching", "Basic AI feedback"].map((item) => (
+                {["CV scores", "Job description match", "Keyword gaps", "Basic AI feedback"].map((item) => (
                   <li key={item}>Included: {item}</li>
                 ))}
               </ul>
@@ -228,24 +230,25 @@ export default function Home() {
               </div>
             </article>
             <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
-              <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-sm font-bold text-slate-600">
+              <span className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-sm font-bold text-slate-600">
                 Coming Soon
               </span>
-              <h3 className="mt-3 text-2xl font-black tracking-tight text-ink">Full Report Pro</h3>
+              <h3 className="mt-3 text-2xl font-black tracking-tight text-ink">Pro Report</h3>
               <p className="mt-3 text-sm leading-6 text-slate-600">
-                Get notified when rewritten bullet points, tailored CV suggestions, and PDF exports launch.
+                Unlock deeper CV rewrites, job-tailored improvements, and recruiter-style recommendations.
               </p>
               <ul className="mt-6 space-y-3 text-sm font-medium text-slate-600">
                 {[
-                  "Rewritten bullet points",
-                  "Role-specific CV rewrite",
+                  "CV summary rewrite",
+                  "Bullet point rewrites",
+                  "Job-specific tailoring",
                   "PDF export",
-                  "Recruiter-style checklist",
+                  "Recruiter checklist",
                 ].map((item) => (
                   <li key={item}>Preview: {item}</li>
                 ))}
               </ul>
-              <WaitlistForm source="homepage_pro_preview" />
+              <WaitlistForm source="homepage-pro" />
             </article>
           </div>
         </section>
