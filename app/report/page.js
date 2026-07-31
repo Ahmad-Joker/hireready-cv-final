@@ -6,6 +6,7 @@ import Footer from "../../components/Footer";
 import Button from "../../components/Button";
 import ScoreCard from "../../components/ScoreCard";
 import WaitlistForm from "../../components/WaitlistForm";
+import RewrittenCVDisplay from "../../components/RewrittenCVDisplay";
 import { reportData } from "../../lib/reportData";
 
 const legacyStorageKey = "hireready-cv-report";
@@ -611,10 +612,8 @@ function ProReportPreview({
   rewrittenCv,
   isGeneratingRewrite,
   rewriteError,
-  copyStatus,
   onGenerateRewrite,
   onClearRewrite,
-  onCopy,
 }) {
   const summaryRewrite = getSummaryRewrite(report, aiFeedback);
   const roleType = getRoleType(report.targetRole);
@@ -722,12 +721,7 @@ function ProReportPreview({
               ) : null}
             </ProContentCard>
 
-            <RewrittenCvDraft
-              rewrite={rewrittenCv}
-              onCopy={onCopy}
-              onClear={onClearRewrite}
-              copyStatus={copyStatus}
-            />
+            <RewrittenCVDisplay rewrittenCvData={rewrittenCv} onClear={onClearRewrite} />
 
             <ProContentCard title="CV Summary Rewrite" className="lg:col-span-2">
               <div className="rounded-2xl bg-slate-950 p-5 text-white">
@@ -846,7 +840,6 @@ export default function ReportPage() {
   const [rewrittenCv, setRewrittenCv] = useState(null);
   const [isGeneratingRewrite, setIsGeneratingRewrite] = useState(false);
   const [rewriteError, setRewriteError] = useState("");
-  const [copyStatus, setCopyStatus] = useState("");
   const [aiFeedback, setAiFeedback] = useState(null);
   const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
   const [aiFeedbackError, setAiFeedbackError] = useState("");
@@ -911,18 +904,6 @@ export default function ReportPage() {
     setRewriteError("");
     setAiFeedback(null);
     setAiFeedbackError("");
-  }
-
-  async function handleCopy(label, text) {
-    if (!text) return;
-
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopyStatus(label);
-      window.setTimeout(() => setCopyStatus(""), 1600);
-    } catch {
-      setCopyStatus("");
-    }
   }
 
   function handleClearRewrittenCv() {
@@ -1212,10 +1193,8 @@ export default function ReportPage() {
             rewrittenCv={rewrittenCv}
             isGeneratingRewrite={isGeneratingRewrite}
             rewriteError={rewriteError}
-            copyStatus={copyStatus}
             onGenerateRewrite={handleGenerateRewrite}
             onClearRewrite={handleClearRewrittenCv}
-            onCopy={handleCopy}
           />
         </section>
       </main>

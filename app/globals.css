@@ -40,3 +40,31 @@ select {
   background: #2563EB;
   color: white;
 }
+
+.ats-cv-print-document {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm 14mm;
+  }
+
+  html,
+  body {
+    background: white !important;
+    color: #111827 !important;
+  }
+
+  .no-print,
+  nav,
+  footer,
+  button {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+}
