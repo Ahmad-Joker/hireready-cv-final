@@ -11,6 +11,7 @@ import { reportData } from "../../lib/reportData";
 const legacyStorageKey = "hireready-cv-report";
 const generatedStorageKey = "hireready_generated_report";
 const proDemoStorageKey = "hireready_pro_demo_unlocked";
+const rewrittenCvStorageKey = "hireready_rewritten_cv";
 
 const scoreMeanings = [
   ["ATS Score", "Formatting and machine-readability."],
@@ -255,6 +256,243 @@ function ProContentCard({ title, children, className = "" }) {
   );
 }
 
+function compactLines(lines) {
+  return lines.filter(Boolean).join("\n");
+}
+
+function getContactLines(contact = {}) {
+  return [
+    contact.email,
+    contact.phone,
+    contact.location,
+    contact.linkedin,
+    contact.portfolio,
+  ].filter(Boolean);
+}
+
+function getExperienceBulletsText(rewrittenCv = {}) {
+  return (rewrittenCv.experience || [])
+    .flatMap((item) => item.bullets || [])
+    .filter(Boolean)
+    .map((item) => `- ${item}`)
+    .join("\n");
+}
+
+function getSkillsText(rewrittenCv = {}) {
+  return (rewrittenCv.coreSkills || []).join(", ");
+}
+
+function getFullCvText(rewrite) {
+  const cv = rewrite?.rewrittenCV || {};
+  const sections = [
+    compactLines([
+      cv.name,
+      ...getContactLines(cv.contact),
+    ]),
+    compactLines([
+      "PROFESSIONAL SUMMARY",
+      cv.professionalSummary,
+    ]),
+    compactLines([
+      "CORE SKILLS",
+      getSkillsText(cv),
+    ]),
+    compactLines([
+      "EXPERIENCE",
+      ...(cv.experience || []).flatMap((item) => [
+        compactLines([item.jobTitle, item.company, item.location, item.dates].filter(Boolean)),
+        ...(item.bullets || []).map((bullet) => `- ${bullet}`),
+        "",
+      ]),
+    ]),
+    compactLines([
+      "PROJECTS",
+      ...(cv.projects || []).flatMap((item) => [
+        item.projectName,
+        item.description,
+        ...(item.bullets || []).map((bullet) => `- ${bullet}`),
+        "",
+      ]),
+    ]),
+    compactLines([
+      "EDUCATION",
+      ...(cv.education || []).flatMap((item) => [
+        compactLines([item.degree, item.institution, item.location, item.dates].filter(Boolean)),
+        ...(item.details || []).map((detail) => `- ${detail}`),
+        "",
+      ]),
+    ]),
+    compactLines([
+      "CERTIFICATIONS",
+      ...(cv.certifications || []).map((item) => `- ${item}`),
+    ]),
+    compactLines([
+      "ADDITIONAL SECTIONS",
+      ...(cv.additionalSections || []).map((item) => `- ${item}`),
+    ]),
+  ];
+
+  return sections.filter((section) => section.trim()).join("\n\n");
+}
+
+function CopyButton({ label, onClick, active }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-black text-ink transition hover:border-blue-200 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-action focus:ring-offset-2"
+    >
+      {active ? "Copied" : label}
+    </button>
+  );
+}
+
+function DetailList({ items = [] }) {
+  if (!items.length) return null;
+
+  return (
+    <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-700">
+      {items.map((item) => (
+        <li key={item} className="flex gap-2">
+          <span className="mt-2.5 h-1.5 w-1.5 flex-none rounded-full bg-action" />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function RewrittenCvDraft({ rewrite, onCopy, onClear, copyStatus }) {
+  if (!rewrite) return null;
+
+  const cv = rewrite.rewrittenCV || {};
+  const contactLines = getContactLines(cv.contact);
+  const warnings = [
+    ...(rewrite.atsOptimizationNotes?.truthfulnessWarnings || []),
+    ...(rewrite.changeSummary?.whatNeedsUserConfirmation || []),
+  ];
+  const placeholders = rewrite.changeSummary?.placeholdersToFill || [];
+
+  return (
+    <ProContentCard title="Generated Rewritten CV Draft" className="lg:col-span-2">
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold leading-6 text-amber-800">
+        Review all rewritten content before using it. Placeholders should be replaced with your real details.
+      </div>
+
+      <div className="mt-5 flex flex-wrap gap-3">
+        <CopyButton label="Copy Full CV" active={copyStatus === "full"} onClick={() => onCopy("full", getFullCvText(rewrite))} />
+        <CopyButton label="Copy Summary" active={copyStatus === "summary"} onClick={() => onCopy("summary", cv.professionalSummary || "")} />
+        <CopyButton label="Copy Skills" active={copyStatus === "skills"} onClick={() => onCopy("skills", getSkillsText(cv))} />
+        <CopyButton label="Copy Experience Bullets" active={copyStatus === "experience"} onClick={() => onCopy("experience", getExperienceBulletsText(cv))} />
+        <button
+          type="button"
+          onClick={onClear}
+          className="inline-flex min-h-10 items-center justify-center rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-black text-red-700 transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2"
+        >
+          Clear Rewritten CV
+        </button>
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+        <p className="text-xs font-black uppercase tracking-wider text-slate-500">{rewrite.cvTitle || "Rewritten ATS CV Draft"}</p>
+        {rewrite.targetRoleFitSummary ? (
+          <p className="mt-3 text-sm leading-6 text-slate-600">{rewrite.targetRoleFitSummary}</p>
+        ) : null}
+      </div>
+
+      <div className="mt-5 space-y-5 rounded-2xl border border-slate-200 bg-white p-5">
+        <section>
+          <h4 className="text-lg font-black text-ink">{cv.name || "[Add name]"}</h4>
+          <h5 className="mt-4 text-sm font-black uppercase tracking-wider text-slate-500">Contact</h5>
+          <p className="mt-2 text-sm leading-6 text-slate-700">
+            {contactLines.length ? contactLines.join(" | ") : "[Add contact details]"}
+          </p>
+        </section>
+
+        <section>
+          <h5 className="text-sm font-black uppercase tracking-wider text-slate-500">Professional Summary</h5>
+          <p className="mt-2 leading-7 text-slate-700">{cv.professionalSummary || "[Add professional summary]"}</p>
+        </section>
+
+        <section>
+          <h5 className="text-sm font-black uppercase tracking-wider text-slate-500">Core Skills</h5>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {(cv.coreSkills?.length ? cv.coreSkills : ["[Add skills]"]).map((skill) => (
+              <span key={skill} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-bold text-slate-700">
+                {skill}
+              </span>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <h5 className="text-sm font-black uppercase tracking-wider text-slate-500">Experience</h5>
+          <div className="mt-3 space-y-4">
+            {(cv.experience?.length ? cv.experience : [{ jobTitle: "[Add job title]", company: "[Add company]", bullets: ["[Add measurable result here]"] }]).map((item, index) => (
+              <div key={`${item.jobTitle}-${index}`} className="rounded-2xl bg-slate-50 p-4">
+                <p className="font-black text-ink">{item.jobTitle || "[Add job title]"}</p>
+                <p className="mt-1 text-sm font-semibold text-slate-600">
+                  {[item.company, item.location, item.dates].filter(Boolean).join(" | ") || "[Add company, location, and dates]"}
+                </p>
+                <DetailList items={item.bullets} />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <h5 className="text-sm font-black uppercase tracking-wider text-slate-500">Projects</h5>
+          <div className="mt-3 space-y-4">
+            {(cv.projects?.length ? cv.projects : [{ projectName: "[Add project]", description: "[Add missing detail]", bullets: [] }]).map((item, index) => (
+              <div key={`${item.projectName}-${index}`} className="rounded-2xl bg-slate-50 p-4">
+                <p className="font-black text-ink">{item.projectName || "[Add project]"}</p>
+                {item.description ? <p className="mt-2 text-sm leading-6 text-slate-600">{item.description}</p> : null}
+                <DetailList items={item.bullets} />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <h5 className="text-sm font-black uppercase tracking-wider text-slate-500">Education</h5>
+          <div className="mt-3 space-y-4">
+            {(cv.education?.length ? cv.education : [{ degree: "[Add degree]", institution: "[Add institution]", details: [] }]).map((item, index) => (
+              <div key={`${item.degree}-${index}`} className="rounded-2xl bg-slate-50 p-4">
+                <p className="font-black text-ink">{item.degree || "[Add degree]"}</p>
+                <p className="mt-1 text-sm font-semibold text-slate-600">
+                  {[item.institution, item.location, item.dates].filter(Boolean).join(" | ") || "[Add institution, location, and dates]"}
+                </p>
+                <DetailList items={item.details} />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <h5 className="text-sm font-black uppercase tracking-wider text-slate-500">Certifications</h5>
+          <DetailList items={cv.certifications?.length ? cv.certifications : ["[Add certifications if relevant]"]} />
+        </section>
+
+        <section>
+          <h5 className="text-sm font-black uppercase tracking-wider text-slate-500">Additional Sections</h5>
+          <DetailList items={cv.additionalSections?.length ? cv.additionalSections : ["[Add languages, awards, volunteering, or activities if relevant]"]} />
+        </section>
+      </div>
+
+      <div className="mt-5 grid gap-4 lg:grid-cols-2">
+        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+          <h4 className="font-black text-amber-900">Truthfulness warnings</h4>
+          <DetailList items={warnings.length ? warnings : ["Review every rewritten claim against your real CV before using it."]} />
+        </section>
+        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+          <h4 className="font-black text-amber-900">Placeholders to fill</h4>
+          <DetailList items={placeholders.length ? placeholders : ["No placeholders were reported. Still review the draft carefully."]} />
+        </section>
+      </div>
+    </ProContentCard>
+  );
+}
+
 function SectionCard({ title, eyebrow, children, className = "" }) {
   return (
     <article className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-sm ${className}`}>
@@ -363,7 +601,21 @@ function AiFeedbackCard({ feedback }) {
   );
 }
 
-function ProReportPreview({ report, aiFeedback, isProUnlocked, onUnlock, onLock, actionPlan }) {
+function ProReportPreview({
+  report,
+  aiFeedback,
+  isProUnlocked,
+  onUnlock,
+  onLock,
+  actionPlan,
+  rewrittenCv,
+  isGeneratingRewrite,
+  rewriteError,
+  copyStatus,
+  onGenerateRewrite,
+  onClearRewrite,
+  onCopy,
+}) {
   const summaryRewrite = getSummaryRewrite(report, aiFeedback);
   const roleType = getRoleType(report.targetRole);
   const bulletExamples = bulletExamplesByRole[roleType];
@@ -444,6 +696,39 @@ function ProReportPreview({ report, aiFeedback, isProUnlocked, onUnlock, onLock,
           </div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-2">
+            <ProContentCard title="Rewritten ATS CV Generator" className="lg:col-span-2">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="max-w-3xl">
+                  <p className="text-sm leading-6 text-slate-600">
+                    Generate a full ATS-friendly CV draft tailored to your report, target role, and job description.
+                  </p>
+                  <p className="mt-2 text-sm font-semibold leading-6 text-slate-500">
+                    Your extracted CV/report data is sent to Gemini only when you click this button.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={onGenerateRewrite}
+                  disabled={isGeneratingRewrite}
+                  className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-slate-950 bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-md shadow-slate-900/10 transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-action focus:ring-offset-2 disabled:pointer-events-none disabled:border-slate-300 disabled:bg-slate-200 disabled:text-slate-500 sm:w-auto"
+                >
+                  {isGeneratingRewrite ? "Generating rewritten CV..." : "Generate Rewritten CV Draft"}
+                </button>
+              </div>
+              {rewriteError ? (
+                <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold leading-6 text-amber-800">
+                  {rewriteError}
+                </p>
+              ) : null}
+            </ProContentCard>
+
+            <RewrittenCvDraft
+              rewrite={rewrittenCv}
+              onCopy={onCopy}
+              onClear={onClearRewrite}
+              copyStatus={copyStatus}
+            />
+
             <ProContentCard title="CV Summary Rewrite" className="lg:col-span-2">
               <div className="rounded-2xl bg-slate-950 p-5 text-white">
                 <p className="text-lg font-semibold leading-8">{summaryRewrite.text}</p>
@@ -558,6 +843,10 @@ export default function ReportPage() {
   const [report, setReport] = useState(reportData);
   const [isGenerated, setIsGenerated] = useState(false);
   const [isProUnlocked, setIsProUnlocked] = useState(false);
+  const [rewrittenCv, setRewrittenCv] = useState(null);
+  const [isGeneratingRewrite, setIsGeneratingRewrite] = useState(false);
+  const [rewriteError, setRewriteError] = useState("");
+  const [copyStatus, setCopyStatus] = useState("");
   const [aiFeedback, setAiFeedback] = useState(null);
   const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
   const [aiFeedbackError, setAiFeedbackError] = useState("");
@@ -582,8 +871,11 @@ export default function ReportPage() {
 
     try {
       setIsProUnlocked(window.localStorage.getItem(proDemoStorageKey) === "true");
+      const storedRewrite = window.localStorage.getItem(rewrittenCvStorageKey);
+      setRewrittenCv(storedRewrite ? JSON.parse(storedRewrite) : null);
     } catch {
       setIsProUnlocked(false);
+      setRewrittenCv(null);
     }
   }, []);
 
@@ -612,10 +904,74 @@ export default function ReportPage() {
   function handleClearReport() {
     window.localStorage.removeItem(generatedStorageKey);
     window.localStorage.removeItem(legacyStorageKey);
+    window.localStorage.removeItem(rewrittenCvStorageKey);
     setReport(reportData);
     setIsGenerated(false);
+    setRewrittenCv(null);
+    setRewriteError("");
     setAiFeedback(null);
     setAiFeedbackError("");
+  }
+
+  async function handleCopy(label, text) {
+    if (!text) return;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyStatus(label);
+      window.setTimeout(() => setCopyStatus(""), 1600);
+    } catch {
+      setCopyStatus("");
+    }
+  }
+
+  function handleClearRewrittenCv() {
+    setRewrittenCv(null);
+    setRewriteError("");
+    try {
+      window.localStorage.removeItem(rewrittenCvStorageKey);
+    } catch {
+      // The visible state is already cleared.
+    }
+  }
+
+  async function handleGenerateRewrite() {
+    setIsGeneratingRewrite(true);
+    setRewriteError("");
+
+    try {
+      const response = await fetch("/api/rewrite-cv", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          originalCvText: report.originalCvText || report.extractedTextPreview || report.summary,
+          targetRole: report.targetRole || window.localStorage.getItem("targetRole") || "",
+          country: report.country || window.localStorage.getItem("country") || "",
+          experienceLevel: report.experienceLevel || window.localStorage.getItem("experienceLevel") || "",
+          jobDescription: report.jobDescription || window.localStorage.getItem("jobDescription") || "",
+          reportData: report,
+          aiFeedback,
+        }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || "CV rewrite could not be generated right now.");
+      }
+
+      setRewrittenCv(data);
+      try {
+        window.localStorage.setItem(rewrittenCvStorageKey, JSON.stringify(data));
+      } catch {
+        // The draft still displays for the current session if storage is full or unavailable.
+      }
+    } catch (error) {
+      setRewriteError(error?.message || "CV rewrite could not be generated right now.");
+    } finally {
+      setIsGeneratingRewrite(false);
+    }
   }
 
   async function handleGenerateAiFeedback() {
@@ -853,6 +1209,13 @@ export default function ReportPage() {
             onUnlock={handleUnlockProDemo}
             onLock={handleLockProDemo}
             actionPlan={actionPlan}
+            rewrittenCv={rewrittenCv}
+            isGeneratingRewrite={isGeneratingRewrite}
+            rewriteError={rewriteError}
+            copyStatus={copyStatus}
+            onGenerateRewrite={handleGenerateRewrite}
+            onClearRewrite={handleClearRewrittenCv}
+            onCopy={handleCopy}
           />
         </section>
       </main>
