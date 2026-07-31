@@ -11,7 +11,7 @@ import { reportData } from "../../lib/reportData";
 
 const legacyStorageKey = "hireready-cv-report";
 const generatedStorageKey = "hireready_generated_report";
-const proDemoStorageKey = "hireready_pro_demo_unlocked";
+const proAccessStorageKey = "hireready_pro_access";
 const rewrittenCvStorageKey = "hireready_rewritten_cv";
 
 const scoreMeanings = [
@@ -606,8 +606,16 @@ function ProReportPreview({
   report,
   aiFeedback,
   isProUnlocked,
-  onUnlock,
-  onLock,
+  proAccess,
+  proEmail,
+  proAccessCode,
+  isVerifyingPro,
+  proAccessMessage,
+  proAccessError,
+  onProEmailChange,
+  onProAccessCodeChange,
+  onVerifyProAccess,
+  onClearProAccess,
   actionPlan,
   rewrittenCv,
   isGeneratingRewrite,
@@ -626,6 +634,17 @@ function ProReportPreview({
     ? keywordsForPlacement.map(getKeywordPlacement)
     : [getKeywordPlacement("Role-specific keyword", 0)];
   const checklist = getChecklist(report);
+  const hasRewrite = Boolean(rewrittenCv);
+  const creditsRemaining = Number(proAccess?.creditsRemaining || 0);
+  const hasRewriteCredit = creditsRemaining > 0;
+  const canGenerateRewrite = isProUnlocked && !hasRewrite && hasRewriteCredit;
+  const generateButtonLabel = hasRewrite
+    ? "Rewrite generated"
+    : isGeneratingRewrite
+      ? "Generating rewritten CV..."
+      : hasRewriteCredit
+        ? "Generate Rewritten CV Draft"
+        : "Credit used";
 
   return (
     <section className="mt-8 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
@@ -633,46 +652,94 @@ function ProReportPreview({
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-3xl">
             <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-black uppercase tracking-wider text-slate-200">
-              {isProUnlocked ? "Unlocked demo" : "Locked"}
+              {isProUnlocked ? "Pro access unlocked" : "Access required"}
             </span>
             <h2 className="mt-4 text-3xl font-black tracking-tight">Pro Report Preview</h2>
             <p className="mt-3 max-w-2xl leading-7 text-slate-300">
               Unlock deeper CV rewrites, job-tailored improvements, and recruiter-style recommendations.
             </p>
             <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-slate-400">
-              Demo unlock for testing. Payment will be added later.
+              One Pro access code = one rewritten CV generation.
             </p>
           </div>
-          <div className="max-w-sm rounded-2xl border border-white/10 bg-white/10 p-4">
-            <p className="text-sm font-semibold leading-6 text-slate-200">
-              {isProUnlocked
-                ? "This is a demo unlock for MVP testing. In the future, this section will unlock after payment."
-                : "Pro is not available yet. Join the waitlist to get notified when it launches."}
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/10 p-4">
+            <h3 className="text-lg font-black tracking-tight text-white">Unlock Pro Report</h3>
+            <p className="mt-2 text-sm font-semibold leading-6 text-slate-200">
+              Each Pro access code unlocks one rewritten CV generation.
             </p>
-            <div className="mt-4">
-              {isProUnlocked ? (
+            {isProUnlocked ? (
+              <div className="mt-4 space-y-3">
+                <div className="rounded-xl border border-emerald-300/30 bg-emerald-400/10 px-4 py-3 text-sm font-bold leading-6 text-emerald-100">
+                  {hasRewriteCredit
+                    ? `Pro unlocked. You have ${creditsRemaining} rewrite credit.`
+                    : "Your one Pro rewrite credit has been used. You can still copy, print, and download this CV."}
+                </div>
                 <button
                   type="button"
-                  onClick={onLock}
+                  onClick={onClearProAccess}
                   className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-white/20 bg-white px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-slate-950"
                 >
-                  Lock Pro Demo Again
+                  Clear Pro Access
                 </button>
-              ) : (
+              </div>
+            ) : (
+              <form className="mt-4 space-y-3" onSubmit={onVerifyProAccess}>
+                <label className="block">
+                  <span className="text-sm font-black text-white">Email</span>
+                  <input
+                    type="email"
+                    value={proEmail}
+                    onChange={(event) => onProEmailChange(event.target.value)}
+                    placeholder="test@example.com"
+                    className="mt-2 min-h-11 w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm font-semibold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:ring-2 focus:ring-blue-200"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-sm font-black text-white">Pro access code</span>
+                  <input
+                    type="text"
+                    value={proAccessCode}
+                    onChange={(event) => onProAccessCodeChange(event.target.value)}
+                    placeholder="TEST-PRO-123"
+                    className="mt-2 min-h-11 w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm font-semibold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:ring-2 focus:ring-blue-200"
+                  />
+                </label>
                 <button
-                  type="button"
-                  onClick={onUnlock}
-                  className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-blue-300 bg-blue-500 px-5 py-3 text-sm font-black text-white shadow-md shadow-blue-950/30 transition hover:bg-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2 focus:ring-offset-slate-950"
+                  type="submit"
+                  disabled={isVerifyingPro}
+                  className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-blue-300 bg-blue-500 px-5 py-3 text-sm font-black text-white shadow-md shadow-blue-950/30 transition hover:bg-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:pointer-events-none disabled:border-slate-500 disabled:bg-slate-600 disabled:text-slate-300"
                 >
-                  Unlock Pro Demo
+                  {isVerifyingPro ? "Checking access..." : "Unlock Pro"}
                 </button>
-              )}
-            </div>
+              </form>
+            )}
+            {proAccessMessage ? (
+              <p className="mt-3 rounded-xl border border-emerald-300/30 bg-emerald-400/10 px-4 py-3 text-sm font-semibold leading-6 text-emerald-100">
+                {proAccessMessage}
+              </p>
+            ) : null}
+            {proAccessError ? (
+              <p className="mt-3 rounded-xl border border-amber-300/40 bg-amber-400/10 px-4 py-3 text-sm font-semibold leading-6 text-amber-100">
+                {proAccessError}
+              </p>
+            ) : null}
           </div>
         </div>
       </div>
 
       <div className="p-6 sm:p-8">
+        <div className="mb-6 grid gap-3 text-sm font-semibold leading-6 text-slate-600 md:grid-cols-3">
+          {[
+            "One Pro access code = one rewritten CV generation.",
+            "You can view, copy, print, and download the generated CV anytime in this browser.",
+            "Regenerating a new CV requires another Pro access code.",
+          ].map((item) => (
+            <p key={item} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              {item}
+            </p>
+          ))}
+        </div>
+
         {!isProUnlocked ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             {proFeatures.map((feature) => (
@@ -708,12 +775,17 @@ function ProReportPreview({
                 <button
                   type="button"
                   onClick={onGenerateRewrite}
-                  disabled={isGeneratingRewrite}
+                  disabled={isGeneratingRewrite || !canGenerateRewrite}
                   className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-slate-950 bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-md shadow-slate-900/10 transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-action focus:ring-offset-2 disabled:pointer-events-none disabled:border-slate-300 disabled:bg-slate-200 disabled:text-slate-500 sm:w-auto"
                 >
-                  {isGeneratingRewrite ? "Generating rewritten CV..." : "Generate Rewritten CV Draft"}
+                  {generateButtonLabel}
                 </button>
               </div>
+              {hasRewrite ? (
+                <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold leading-6 text-emerald-800">
+                  Your one Pro rewrite credit has been used. You can still copy, print, and download this CV.
+                </p>
+              ) : null}
               {rewriteError ? (
                 <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold leading-6 text-amber-800">
                   {rewriteError}
@@ -837,6 +909,12 @@ export default function ReportPage() {
   const [report, setReport] = useState(reportData);
   const [isGenerated, setIsGenerated] = useState(false);
   const [isProUnlocked, setIsProUnlocked] = useState(false);
+  const [proAccess, setProAccess] = useState(null);
+  const [proEmail, setProEmail] = useState("");
+  const [proAccessCode, setProAccessCode] = useState("");
+  const [isVerifyingPro, setIsVerifyingPro] = useState(false);
+  const [proAccessMessage, setProAccessMessage] = useState("");
+  const [proAccessError, setProAccessError] = useState("");
   const [rewrittenCv, setRewrittenCv] = useState(null);
   const [isGeneratingRewrite, setIsGeneratingRewrite] = useState(false);
   const [rewriteError, setRewriteError] = useState("");
@@ -863,30 +941,106 @@ export default function ReportPage() {
     }
 
     try {
-      setIsProUnlocked(window.localStorage.getItem(proDemoStorageKey) === "true");
       const storedRewrite = window.localStorage.getItem(rewrittenCvStorageKey);
-      setRewrittenCv(storedRewrite ? JSON.parse(storedRewrite) : null);
+      const parsedRewrite = storedRewrite ? JSON.parse(storedRewrite) : null;
+      const storedProAccess = window.localStorage.getItem(proAccessStorageKey);
+      const parsedProAccess = storedProAccess ? JSON.parse(storedProAccess) : null;
+
+      window.localStorage.removeItem("hireready_pro_demo_unlocked");
+      setRewrittenCv(parsedRewrite);
+
+      if (parsedProAccess?.email && parsedProAccess?.accessCode) {
+        setProAccess(parsedProAccess);
+        setProEmail(parsedProAccess.email);
+        setProAccessCode(parsedProAccess.accessCode);
+      }
+
+      setIsProUnlocked(Boolean(parsedRewrite || parsedProAccess?.creditsRemaining > 0));
     } catch {
       setIsProUnlocked(false);
+      setProAccess(null);
       setRewrittenCv(null);
     }
   }, []);
 
-  function handleUnlockProDemo() {
-    setIsProUnlocked(true);
+  async function handleVerifyProAccess(event) {
+    event.preventDefault();
+    setIsVerifyingPro(true);
+    setProAccessError("");
+    setProAccessMessage("");
+
     try {
-      window.localStorage.setItem(proDemoStorageKey, "true");
-    } catch {
-      // Demo unlock still works for the current session if storage is unavailable.
+      const response = await fetch("/api/pro/verify-access", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: proEmail,
+          accessCode: proAccessCode,
+        }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || "We could not verify this Pro access code.");
+      }
+
+      if (data.alreadyUsed) {
+        setProAccessError("This access code has already been used.");
+        setIsProUnlocked(Boolean(rewrittenCv));
+        return;
+      }
+
+      const nextAccess = {
+        email: data.email,
+        accessCode: proAccessCode.trim(),
+        orderId: data.orderId,
+        creditsRemaining: data.creditsRemaining,
+        alreadyUsed: data.alreadyUsed,
+      };
+
+      setProAccess(nextAccess);
+      setIsProUnlocked(true);
+      setProAccessMessage(`Pro unlocked. You have ${data.creditsRemaining} rewrite credit.`);
+
+      try {
+        window.localStorage.setItem(proAccessStorageKey, JSON.stringify(nextAccess));
+      } catch {
+        // Access still works for this session if storage is unavailable.
+      }
+    } catch (error) {
+      setProAccessError(error?.message || "We could not verify this Pro access code.");
+    } finally {
+      setIsVerifyingPro(false);
     }
   }
 
-  function handleLockProDemo() {
-    setIsProUnlocked(false);
+  function handleClearProAccess() {
+    setProAccess(null);
+    setProEmail("");
+    setProAccessCode("");
+    setProAccessError("");
+    setProAccessMessage("");
+    setIsProUnlocked(Boolean(rewrittenCv));
     try {
-      window.localStorage.removeItem(proDemoStorageKey);
+      window.localStorage.removeItem(proAccessStorageKey);
     } catch {
-      // Nothing else to do if storage is unavailable.
+      // The visible state is already cleared.
+    }
+  }
+
+  function persistProAccess(nextAccess, hasSavedRewrite = Boolean(rewrittenCv)) {
+    setProAccess(nextAccess);
+    setIsProUnlocked(Boolean(hasSavedRewrite || nextAccess?.creditsRemaining > 0));
+    try {
+      if (nextAccess) {
+        window.localStorage.setItem(proAccessStorageKey, JSON.stringify(nextAccess));
+      } else {
+        window.localStorage.removeItem(proAccessStorageKey);
+      }
+    } catch {
+      // The visible state remains correct for this session.
     }
   }
 
@@ -898,8 +1052,15 @@ export default function ReportPage() {
     window.localStorage.removeItem(generatedStorageKey);
     window.localStorage.removeItem(legacyStorageKey);
     window.localStorage.removeItem(rewrittenCvStorageKey);
+    window.localStorage.removeItem(proAccessStorageKey);
     setReport(reportData);
     setIsGenerated(false);
+    setIsProUnlocked(false);
+    setProAccess(null);
+    setProEmail("");
+    setProAccessCode("");
+    setProAccessMessage("");
+    setProAccessError("");
     setRewrittenCv(null);
     setRewriteError("");
     setAiFeedback(null);
@@ -909,6 +1070,7 @@ export default function ReportPage() {
   function handleClearRewrittenCv() {
     setRewrittenCv(null);
     setRewriteError("");
+    setIsProUnlocked(Number(proAccess?.creditsRemaining || 0) > 0);
     try {
       window.localStorage.removeItem(rewrittenCvStorageKey);
     } catch {
@@ -917,8 +1079,20 @@ export default function ReportPage() {
   }
 
   async function handleGenerateRewrite() {
+    if (rewrittenCv) {
+      setRewriteError("");
+      setProAccessMessage("Your rewritten CV is already saved in this browser.");
+      return;
+    }
+
+    if (!proAccess?.email || !proAccess?.accessCode || Number(proAccess?.creditsRemaining || 0) <= 0) {
+      setRewriteError("Enter a valid Pro access code with an unused rewrite credit.");
+      return;
+    }
+
     setIsGeneratingRewrite(true);
     setRewriteError("");
+    setProAccessMessage("");
 
     try {
       const response = await fetch("/api/rewrite-cv", {
@@ -927,6 +1101,8 @@ export default function ReportPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          email: proAccess.email,
+          accessCode: proAccess.accessCode,
           originalCvText: report.originalCvText || report.extractedTextPreview || report.summary,
           targetRole: report.targetRole || window.localStorage.getItem("targetRole") || "",
           country: report.country || window.localStorage.getItem("country") || "",
@@ -943,6 +1119,17 @@ export default function ReportPage() {
       }
 
       setRewrittenCv(data);
+      const nextAccess = {
+        ...proAccess,
+        orderId: data.proAccess?.orderId || proAccess.orderId,
+        creditsRemaining: Number(data.proAccess?.creditsRemaining ?? 0),
+        alreadyUsed: Number(data.proAccess?.creditsRemaining ?? 0) <= 0,
+      };
+      persistProAccess(nextAccess, true);
+      setProAccessMessage(
+        data.proAccess?.warning ||
+          "Your one Pro rewrite credit has been used. You can still copy, print, and download this CV."
+      );
       try {
         window.localStorage.setItem(rewrittenCvStorageKey, JSON.stringify(data));
       } catch {
@@ -1187,8 +1374,16 @@ export default function ReportPage() {
             report={report}
             aiFeedback={aiFeedback}
             isProUnlocked={isProUnlocked}
-            onUnlock={handleUnlockProDemo}
-            onLock={handleLockProDemo}
+            proAccess={proAccess}
+            proEmail={proEmail}
+            proAccessCode={proAccessCode}
+            isVerifyingPro={isVerifyingPro}
+            proAccessMessage={proAccessMessage}
+            proAccessError={proAccessError}
+            onProEmailChange={setProEmail}
+            onProAccessCodeChange={setProAccessCode}
+            onVerifyProAccess={handleVerifyProAccess}
+            onClearProAccess={handleClearProAccess}
             actionPlan={actionPlan}
             rewrittenCv={rewrittenCv}
             isGeneratingRewrite={isGeneratingRewrite}
